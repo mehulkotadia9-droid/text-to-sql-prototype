@@ -16,6 +16,10 @@
         <pre>{{ sql }}</pre>
     {% endif %}
 
+    {% if message %}
+        <p style="color: red; font-weight: bold;">{{ message }}</p>
+    {% endif %}
+
     {% if results %}
         <h2>Results:</h2>
         <table border="1" cellpadding="5">
