@@ -1,0 +1,35 @@
+Great question 👍 — coming out of a virtual environment in Bash is very simple.  
+
+---
+
+## 🖥️ Deactivate the Virtual Environment
+When you see `(venv)` at the start of your prompt, it means the environment is active. To exit it, just type:
+
+```bash
+deactivate
+```
+
+---
+
+## ✅ What Happens
+- The `(venv)` disappears from your prompt.
+- You’re back in your **system Python** (global environment).
+- Your installed packages inside `venv` remain safe — they’re just not active until you re‑enter.
+
+---
+
+## 🖥️ To Reactivate Later
+If you want to go back into your project’s environment:
+```bash
+source venv/Scripts/activate
+```
+
+---
+
+So the cycle is:
+- **Enter:** `source venv/Scripts/activate`
+- **Exit:** `deactivate`
+
+---
+
+Would you like me to also show you how to **check which Python environment is currently active** so you can always confirm whether you’re inside `(venv)` or not?
