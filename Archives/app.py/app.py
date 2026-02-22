@@ -18,59 +18,11 @@ def clean_sql(sql):
     sql = sql.strip()
 
     return sql
-# -------------------------------------------------------------
-# get_database_schema()
-# -------------------------------------------------------------
-# Extracts the full database schema from SQLite at runtime.
-#
-# This function:
-#   • Reads all table names from the SQLite database
-#   • Retrieves column names for each table using PRAGMA
-#   • Returns a dictionary like:
-#         {
-#             "Customers": ["id", "name", "country", "date"],
-#             "Orders": ["id", "customer_id", "price", "date"]
-#         }
-#
-# Purpose:
-#   The schema is injected into the AI system prompt so the model
-#   knows exactly which tables and columns exist. This dramatically
-#   improves SQL accuracy and prevents hallucinated table/column names.
-#
-# Used by:
-#   • generate_sql_with_ai()  → schema-aware prompting
-#
-# Notes:
-#   - Runs fast because SQLite PRAGMA calls are lightweight
-#   - Automatically adapts if your database schema changes
-# -------------------------------------------------------------
-def get_database_schema():
-    conn = sqlite3.connect("app.db")
-    cursor = conn.cursor()
 
-    schema = {}
 
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    tables = [row[0] for row in cursor.fetchall()]
-
-    for table in tables:
-        cursor.execute(f"PRAGMA table_info({table});")
-        columns = [col[1] for col in cursor.fetchall()]
-        schema[table] = columns
-
-    conn.close()
-    return schema
 # -------------------------
 # AI FALLBACK FUNCTION
 # -------------------------
-schema = get_database_schema()
-
-print("SCHEMA:", schema)
-
-schema_text = "\n".join(
-    f"{table}: {', '.join(cols)}"
-    for table, cols in schema.items()
-)
 def generate_sql_with_ai(text):
     api_key = os.getenv("PERPLEXITY_API_KEY")
 
@@ -84,20 +36,13 @@ def generate_sql_with_ai(text):
             json={
                 "model": "sonar",
                 "messages": [
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a SQL generator. Return ONLY SQL. No explanation.\n\n"
-                            "DATABASE SCHEMA:\n"
-                            f"{schema_text}\n\n"
-                            "Use only the tables and columns listed above."
-                        )
-                    },
+                    {"role": "system", "content": "Generate ONLY SQL. No explanation."},
                     {"role": "user", "content": text}
                 ]
             },
             timeout=10
         )
+
         data = response.json()
         print("AI RAW RESPONSE:", data)
 
@@ -135,8 +80,8 @@ def generate_sql_with_ai(text):
 # -------------------------
 @app.route('/')
 def home():
-    schema = get_database_schema()
-    return render_template("index.html", schema=schema)
+    return render_template("index.html")
+
 
 @app.route('/query', methods=['POST'])
 def query():
@@ -227,13 +172,8 @@ def query():
 
         finally:
             conn.close()
-    schema = get_database_schema()
-    return render_template(
-        "index.html", 
-        sql=sql, 
-        results=results, 
-        message=message, 
-        schema=schema)
+
+    return render_template("index.html", sql=sql, results=results, message=message)
 
 
 if __name__ == '__main__':

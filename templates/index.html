@@ -1,28 +1,144 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Text-to-SQL Prototype</title>
+    <title>Text → SQL Query Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 40px;
+            text-align: center;
+        }
+        .container {
+            width: 650px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+        input[type="text"] {
+            width: 90%;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+        button {
+            margin-top: 18px;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #eee;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .samples {
+            margin-top: 25px;
+            text-align: left;
+        }
+        .sample-item {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .sample-item:hover {
+            background: #e0e0e0;
+        }
+        .footer {
+            margin-top: 25px;
+            color: #888;
+            font-size: 14px;
+        }
+		.schema-box {
+			margin-top: 30px;
+			text-align: left;
+			background: #f8f9fa;
+			padding: 15px;
+			border-radius: 10px;
+		border: 1px solid #ddd;
+		}
+
+		.schema-table {
+			background: #ffffff;
+			padding: 10px;
+			margin-bottom: 8px;
+			border-radius: 6px;
+			border: 1px solid #eee;
+		}
+		.home-btn {
+			display: inline-block;
+			margin-bottom: 15px;
+			padding: 8px 16px;
+			background: #28a745;
+			color: white;
+			text-decoration: none;
+			border-radius: 6px;
+			font-size: 14px;
+		}
+
+		.home-btn:hover {
+			background: #1e7e34;
+		}
+    </style>
+
+    <script>
+        function fillSample(text) {
+            document.getElementById("text").value = text;
+        }
+    </script>
 </head>
+
 <body>
-    <h1>Text-to-SQL Query</h1>
+<div class="container">
+	<a href="/" class="home-btn">Home</a>
+    <h2>Text → SQL Query Generator</h2>
+    <p>Ask a natural language question and get SQL instantly.</p>
+
     <form method="POST" action="/query">
-        <label for="text">Enter your query:</label><br>
-        <input type="text" id="text" name="text" style="width:300px;">
-        <button type="submit">Submit</button>
+        <input type="text" id="text" name="text" placeholder="Try: latest 5 orders">
+        <br>
+        <button type="submit">Run Query</button>
     </form>
 
+    {% if message %}
+        <p><strong>{{ message }}</strong></p>
+    {% endif %}
+
     {% if sql %}
-        <h2>Generated SQL:</h2>
+        <h3>Generated SQL</h3>
         <pre>{{ sql }}</pre>
     {% endif %}
 
-    {% if message %}
-        <p style="color: red; font-weight: bold;">{{ message }}</p>
-    {% endif %}
-
     {% if results %}
-        <h2>Results:</h2>
-        <table border="1" cellpadding="5">
+        <h3>Results</h3>
+        <table>
             <tr>
                 {% for col in results[0].keys() %}
                     <th>{{ col }}</th>
@@ -30,12 +146,52 @@
             </tr>
             {% for row in results %}
                 <tr>
-                    {% for value in row.values() %}
-                        <td>{{ value }}</td>
+                    {% for col in row.values() %}
+                        <td>{{ col }}</td>
                     {% endfor %}
                 </tr>
             {% endfor %}
         </table>
     {% endif %}
+	<div class="schema-box">
+		<h3>Database Schema</h3>
+
+		{% for table, columns in schema.items() %}
+			<div class="schema-table">
+				<strong>{{ table }}</strong>: {{ columns | join(', ') }}
+			</div>
+		{% endfor %}
+	</div>
+    <div class="samples">
+        <h3>Sample Queries</h3>
+
+        <div class="sample-item" onclick="fillSample('list all customers')">
+            List all customers
+        </div>
+
+        <div class="sample-item" onclick="fillSample('orders greater than 500')">
+            Orders greater than 500
+        </div>
+
+        <div class="sample-item" onclick="fillSample('latest 3 orders')">
+            Latest 3 orders
+        </div>
+
+        <div class="sample-item" onclick="fillSample('total sales by customer')">
+            Total sales by customer
+        </div>
+
+        <div class="sample-item" onclick="fillSample('customers before 2022')">
+            Customers before 2022
+        </div>
+
+        <div class="sample-item" onclick="fillSample('customers from USA')">
+            Customers from USA
+        </div>
+    </div>
+	<div class="footer">
+        Version: {{ version }}
+    </div>
+</div>
 </body>
 </html>

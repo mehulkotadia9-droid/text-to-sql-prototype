@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text-to-SQL Prototype</title>
+</head>
+<body>
+    <h1>Text-to-SQL Query</h1>
+    <form method="POST" action="/query">
+        <label for="text">Enter your query:</label><br>
+        <input type="text" id="text" name="text" style="width:300px;">
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if sql %}
+        <h2>Generated SQL:</h2>
+        <pre>{{ sql }}</pre>
+    {% endif %}
+
+    {% if message %}
+        <p style="color: red; font-weight: bold;">{{ message }}</p>
+    {% endif %}
+
+    {% if results %}
+        <h2>Results:</h2>
+        <table border="1" cellpadding="5">
+            <tr>
+                {% for col in results[0].keys() %}
+                    <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+            {% for row in results %}
+                <tr>
+                    {% for value in row.values() %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>
